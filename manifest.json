@@ -5,9 +5,7 @@
   "description": "Select text and ask AI anything with your preferred LLM model",
   "permissions": [
     "storage",
-    "activeTab",
-    "tabs",
-    "contextMenus"
+    "activeTab"
   ],
   "host_permissions": [
     "https://api.openai.com/*",

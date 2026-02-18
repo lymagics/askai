@@ -7,19 +7,22 @@ A Chrome extension that lets you select text or capture screenshots on any webpa
 - **Text Selection**: Select any text on a webpage, click the AskAI button, and ask questions about it
 - **Screenshot Capture**: Capture any area of the screen and ask AI to analyze it
 - **Multiple AI Providers**: Support for OpenAI, Anthropic, Google AI, xAI, and DeepSeek
+- **Dynamic Model Lists**: Models are fetched from each provider's API and cached for 24 hours
 - **Conversation History**: Continue the conversation with follow-up questions
 - **Dark/Light Mode**: Toggle theme in the modal
 - **Remember Settings**: Remembers your last used provider and model
 
 ## Supported Providers
 
-| Provider | Models | Vision Support |
-|----------|--------|----------------|
-| OpenAI | O4 Mini, GPT-5.2, GPT-5, GPT-4.1, GPT-4o, GPT-4, GPT-3.5 Turbo, GPT-3.5 | Yes |
-| Anthropic | Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5, Claude Opus 4.1, Claude Sonnet 4.0 | Yes |
-| Google AI | Gemini 3 Pro/Flash Preview, Gemini 2.5 Pro/Flash/Lite, Gemini 2.0 Flash/Lite | Yes |
-| DeepSeek | DeepSeek Chat, DeepSeek Reasoner | Yes |
-| xAI | Grok 4.1, Grok 4, Grok 3 | No |
+| Provider | Vision Support | Model Sorting |
+|----------|----------------|---------------|
+| OpenAI | Yes | By release date (newest first) |
+| Anthropic | Yes | By release date (newest first) |
+| Google AI | Yes | By model ID |
+| xAI | No | By release date (newest first) |
+| DeepSeek | No | By model ID |
+
+Available models are fetched dynamically from each provider's API. The model list is cached for 24 hours and can be cleared manually from the extension settings.
 
 ## Installation
 
@@ -59,7 +62,9 @@ A Chrome extension that lets you select text or capture screenshots on any webpa
 askai/
 ├── manifest.json           # Extension configuration
 ├── background/
-│   └── service-worker.js   # API calls to AI providers
+│   ├── service-worker.js   # Message router (entry point)
+│   ├── api-chat.js         # Chat API calls to AI providers
+│   └── api-models.js       # Model list fetching and caching
 ├── content/
 │   ├── content.js          # Text selection, screenshot, modal UI
 │   └── content.css         # Styles for floating button and modal
@@ -74,12 +79,11 @@ askai/
 
 ### Adding New Providers
 
-1. Add models to `MODELS` object in `content/content.js`
-2. Add provider name to `PROVIDER_NAMES` in `content/content.js`
-3. Add provider to `PROVIDERS` array in `popup/popup.js`
-4. Add API endpoint to `API_ENDPOINTS` in `background/service-worker.js`
-5. Add API call function in `background/service-worker.js`
-6. Add host permission in `manifest.json`
+1. Add provider name to `PROVIDER_NAMES` in `content/content.js`
+2. Add provider to `PROVIDERS` array in `popup/popup.js`
+3. Add chat API endpoint to `API_ENDPOINTS` and call function in `background/api-chat.js`
+4. Add model list endpoint and fetch function in `background/api-models.js`
+5. Add host permission in `manifest.json`
 
 ### Disabling Vision for a Provider
 

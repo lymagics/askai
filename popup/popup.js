@@ -10,6 +10,7 @@ const themeToggle = document.getElementById('themeToggle');
 const providersList = document.getElementById('providersList');
 const enableAskAIToggle = document.getElementById('enableAskAI');
 const screenshotBtn = document.getElementById('screenshotBtn');
+const clearCacheBtn = document.getElementById('clearCacheBtn');
 
 function loadSettings() {
   chrome.storage.sync.get(['theme', 'apiKeys', 'enableAskAI'], (result) => {
@@ -147,6 +148,17 @@ screenshotBtn.addEventListener('click', async () => {
 
   // Close the popup
   window.close();
+});
+
+clearCacheBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ type: 'CLEAR_MODEL_CACHE' }, () => {
+    clearCacheBtn.textContent = 'Cleared!';
+    clearCacheBtn.disabled = true;
+    setTimeout(() => {
+      clearCacheBtn.textContent = 'Clear cache';
+      clearCacheBtn.disabled = false;
+    }, 1500);
+  });
 });
 
 document.addEventListener('DOMContentLoaded', loadSettings);

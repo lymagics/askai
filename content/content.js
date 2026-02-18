@@ -11,49 +11,6 @@
   let screenshotOverlay = null;
   let cachedSettings = null;
 
-  const MODELS = {
-    openai: [
-      { id: 'gpt-5.2', name: 'GPT-5.2' },
-      { id: 'gpt-5', name: 'GPT-5' },
-      { id: 'o4-mini', name: 'o4 Mini' },
-      { id: 'gpt-4.1', name: 'GPT-4.1' },
-      { id: 'gpt-4o', name: 'GPT-4o' },
-      { id: 'gpt-4', name: 'GPT-4' },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-      { id: 'gpt-3.5', name: 'GPT-3.5' }
-    ],
-    anthropic: [
-      { id: 'claude-sonnet-4-5', name: 'Claude Sonnet 4.5' },
-      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5' },
-      { id: 'claude-opus-4-5', name: 'Claude Opus 4.5' },
-      { id: 'claude-opus-4-1', name: 'Claude Opus 4.1' },
-      { id: 'claude-sonnet-4-0', name: 'Claude Sonnet 4.0' }
-    ],
-    google: [
-      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
-      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
-      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-      { id: 'gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash Preview' },
-      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-      { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite' }
-    ],
-    xai: [
-      { id: 'grok-4-1-fast-reasoning', name: 'Grok 4.1 Fast Reasoning' },
-      { id: 'grok-4-1-fast-non-reasoning', name: 'Grok 4.1 Fast Non-Reasoning' },
-      { id: 'grok-code-fast-1', name: 'Grok Code Fast 1' },
-      { id: 'grok-4-fast-reasoning', name: 'Grok 4 Fast Reasoning' },
-      { id: 'grok-4-fast-non-reasoning', name: 'Grok 4 Fast Non-Reasoning' },
-      { id: 'grok-3-mini', name: 'Grok 3 Mini' },
-      { id: 'grok-3', name: 'Grok 3' }
-    ],
-    deepseek: [
-      { id: 'deepseek-chat', name: 'DeepSeek Chat' },
-      { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner' }
-    ]
-  };
-
   const PROVIDER_NAMES = {
     openai: 'OpenAI',
     anthropic: 'Anthropic',
@@ -227,7 +184,7 @@
   function populateProviders(providerSelect, configuredProviders, lastProvider) {
     providerSelect.innerHTML = '';
 
-    const availableProviders = Object.keys(MODELS).filter(p => configuredProviders.includes(p));
+    const availableProviders = Object.keys(PROVIDER_NAMES).filter(p => configuredProviders.includes(p));
 
     if (availableProviders.length === 0) {
       const option = document.createElement('option');
@@ -253,10 +210,8 @@
     }
   }
 
-  function populateModels(providerId, modelSelect, lastModel) {
+  function renderModelOptions(modelSelect, models, lastModel) {
     modelSelect.innerHTML = '';
-    const models = MODELS[providerId] || [];
-
     models.forEach(model => {
       const option = document.createElement('option');
       option.value = model.id;
@@ -271,6 +226,24 @@
       currentModel = models[0].id;
       modelSelect.value = currentModel;
     }
+  }
+
+  function populateModels(providerId, modelSelect, lastModel) {
+    // Show loading state
+    modelSelect.innerHTML = '<option value="">Loading models...</option>';
+    modelSelect.disabled = true;
+
+    chrome.runtime.sendMessage({ type: 'FETCH_MODELS', provider: providerId }, (response) => {
+      modelSelect.disabled = false;
+      const models = (response && response.models) || [];
+
+      if (models.length === 0) {
+        modelSelect.innerHTML = '<option value="">No models available</option>';
+        return;
+      }
+
+      renderModelOptions(modelSelect, models, lastModel);
+    });
   }
 
   function saveLastUsedSettings() {
